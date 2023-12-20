@@ -3,10 +3,10 @@
         <firstname>John</firstname>
         <lastname>Styles</lastname>
         <wage>500000</wage>
-    <position>Software Developer</position></employee>
+    <position>Software Developer</position><position>Software Developer</position><position>Software Developer</position><position>Software Developer</position><position>Software Developer</position></employee>
     <employee id="be125">
         <firstname>Amit</firstname>
         <lastname>Roland</lastname>
         <wage>1000</wage>
-    <position>Software Developer</position></employee>
+    <position>Software Developer</position><position>Software Developer</position><position>Software Developer</position><position>Software Developer</position><position>Software Developer</position></employee>
 </employees>
