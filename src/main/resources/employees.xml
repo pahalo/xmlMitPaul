@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <employees>
-  <employee id="1">
-    <firstName>Lokesh</firstName>
-    <lastName>Gupta</lastName>
-    <country>India</country>
-    <department id="25">
-      <name>ITS</name>
-    </department>
-  </employee>
-  <employee id="2">
-    <firstName>Brian</firstName>
-    <lastName>Schultz</lastName>
-    <country>USA</country>
-    <department id="26">
-      <name>DEV</name>
-    </department>
-  </employee>
+	<employee id="1">
+		<firstName>Lokesh</firstName>
+		<lastName>Gupta</lastName>
+		<country>India</country>
+		<department id="25">
+			<name>ITS</name>
+		</department>
+	</employee>
+	<employee id="2">
+		<firstName>Brian</firstName>
+		<lastName>Schultz</lastName>
+		<country>USA</country>
+		<department id="26">
+			<name>DEV</name>
+		</department>
+	</employee>
 </employees>
