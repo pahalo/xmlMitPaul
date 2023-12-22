@@ -9,6 +9,8 @@
 		</department>
 	</employee>
 	<employee id="2">
+		<lastName>Gupta</lastName>
+		<firstName>Brian</firstName>
 		<firstName>Brian</firstName>
 		<lastName>Schultz</lastName>
 		<country>USA</country>
