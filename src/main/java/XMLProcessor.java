@@ -8,6 +8,7 @@ import java.util.Set;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.Attribute;
 
 public class XMLProcessor {
     private static Set<String> leafElements = new HashSet<>();
@@ -58,11 +59,16 @@ public class XMLProcessor {
             for (Element child : element.getChildren()) {
                 String elementName = child.getName();
                 Set<String> elements = elementsAtSameLevel.computeIfAbsent(elementName, k -> new HashSet<>());
+
                 StringBuilder elementTextBuilder = new StringBuilder();
 
-                for (Element grandChild : child.getChildren()) {
-                    elementTextBuilder.append(grandChild.getTextNormalize());
+                List<Attribute> attributes = child.getAttributes();
+                for (Attribute attribute : attributes) {
+                    elementTextBuilder.append(attribute.getName()).append("=").append(attribute.getValue()).append("|");
                 }
+
+                // Append text content
+                elementTextBuilder.append(child.getTextNormalize());
 
                 String elementText = elementTextBuilder.toString();
 
@@ -78,6 +84,4 @@ public class XMLProcessor {
             }
         }
     }
-
-
 }

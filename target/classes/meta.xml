@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <employees>
 	<employee id="1">
-		<firstName>Lokesh</firstName>
+		<firstName geboren="1912-06-23" gestorben="1954-06-07" >Lokesh</firstName>
+		<firstName geboren="1912-06-23" gestorben="1954-06-07" >Lokesh</firstName>
 		<lastName>Gupta</lastName>
 		<country>India</country>
 		<department id="25">
@@ -9,9 +10,9 @@
 		</department>
 	</employee>
 	<employee id="2">
-		<lastName>Gupta</lastName>
-		<firstName>Brian</firstName>
-		<firstName>Brian</firstName>
+		<lastName >Gupta</lastName>
+		<firstName geboren="1912-06-23" gestorben="1954-06-07" >Brian</firstName>
+		<firstName geboren="1912-06-23" gestorben="1954-06-07">Brian</firstName>
 		<lastName>Schultz</lastName>
 		<country>USA</country>
 		<department id="26">
