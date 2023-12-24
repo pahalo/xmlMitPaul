@@ -1,22 +1,37 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<employees>
-	<employee id="1">
-		<firstName geboren="1912-06-23" gestorben="1954-06-07" >Lokesh</firstName>
-		<firstName geboren="1912-06-23" gestorben="1954-06-07" >Lokesh</firstName>
-		<lastName>Gupta</lastName>
-		<country>India</country>
-		<department id="25">
-			<name>ITS</name>
-		</department>
-	</employee>
-	<employee id="2">
-		<lastName >Gupta</lastName>
-		<firstName geboren="1912-06-23" gestorben="1954-06-07" >Brian</firstName>
-		<firstName geboren="1912-06-23" gestorben="1954-06-07">Brian</firstName>
-		<lastName>Schultz</lastName>
-		<country>USA</country>
-		<department id="26">
-			<name>DEV</name>
-		</department>
-	</employee>
+<employees xmlns:mets="http://example.com/mets-namespace"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+    <employee id="12">
+        <lastName>Williams</lastName>
+        <firstName geboren="1980-04-15" gestorben="2035-09-28">Emma</firstName>
+        <lastName>Williams</lastName>
+        <country>UK</country>
+        <department id="38">
+            <name>Marketing</name>
+        </department>
+    </employee>
+    <employee id="13">
+        <lastName>Thompson</lastName>
+        <firstName geboren="1992-11-20" gestorben="2050-03-12">Michael</firstName>
+        <lastName>Smith</lastName>
+        <country>USA</country>
+        <department id="39">
+            <name>HR</name>
+        </department>
+    </employee>
+    <employee id="13">
+        <lastName>Thompson</lastName>
+        <firstName geboren="1992-11-20" gestorben="2050-03-12">Michael</firstName>
+        <lastName>Smith</lastName>
+        <country>USA</country>
+        <department id="39">
+            <name>HR</name>
+        </department>
+    </employee>
+    <mets:file ID="FILE_0598" MIMETYPE="">
+        <mets:FLocat LOCTYPE="URL" xlink:href="00000589.tif"/>
+    </mets:file>
+    <mets:file ID="FILE_0598" MIMETYPE="">
+        <mets:FLocat LOCTYPE="URL" xlink:href="00000589.tif"/>
+    </mets:file>
+    <!-- Weitere Elemente -->
 </employees>

@@ -1,7 +1,6 @@
 <employees xmlns:mets="http://example.com/mets-namespace"
            xmlns:xlink="http://www.w3.org/1999/xlink">
     <employee id="12">
-        <lastName>Williams</lastName>
         <firstName geboren="1980-04-15" gestorben="2035-09-28">Emma</firstName>
         <lastName>Williams</lastName>
         <country>UK</country>
