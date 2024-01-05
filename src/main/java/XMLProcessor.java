@@ -13,6 +13,7 @@ public class XMLProcessor {
 
     private static final List<String> stringsToIgnore = Arrays.asList("<mdWrapMDTYPE=\"MODS\">", "<xmlData>", "<mods>", "<extension>", "<goobi>");
     private static List<String> duplicatesList = new ArrayList<>();
+    private static List<String> hrefDuplicatesList = new ArrayList<>();
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -50,7 +51,7 @@ public class XMLProcessor {
             Document doc = sax.build(file);
             Element rootElement = doc.getRootElement();
             collectXmlElements(rootElement, file, xmlElementsList);
-            System.out.println("XML-Elemente der Datei " + file.getName() + ":");
+            //System.out.println("XML-Elemente der Datei " + file.getName() + ":");
             findDuplicates(xmlElementsList, file);
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,8 +62,8 @@ public class XMLProcessor {
         if (element != null) {
             StringBuilder elementString = new StringBuilder();
             
-            Namespace ns = element.getNamespace(); // Namespace des aktuellen Elements
-            String prefix = ns.getPrefix(); // Präfix des Namespaces
+            Namespace ns = element.getNamespace(); 
+            String prefix = ns.getPrefix(); 
 
             // Prüfe, ob ein Namespace-Präfix vorhanden ist und füge es dem Element hinzu
             if (!prefix.isEmpty()) {
@@ -88,14 +89,12 @@ public class XMLProcessor {
                     collectXmlElements(child, xmlFile, xmlElementsList);
                 }
 
-                // Schließe das Element mit dem entsprechenden Namespace-Präfix
                 if (!prefix.isEmpty()) {
                     xmlElementsList.add("</" + prefix + ":" + element.getName() + ">");
                 } else {
                     xmlElementsList.add("</" + element.getName() + ">");
                 }
             } else {
-                // Wenn das Element keine Kinder hat, schließe es als Selbstschließendes Element
                 if (!prefix.isEmpty()) {
                     xmlElementsList.add(elementString.append("/>").toString());
                 } else {
@@ -109,7 +108,25 @@ public class XMLProcessor {
     private static void findDuplicates(List<String> xmlElementsList, File xmlFile) {
         boolean duplicatesFound = false;
         Set<String> orderLabels = new HashSet<>();
+        Set<String> hrefs = new HashSet<>();
 
+        for (String element : xmlElementsList) {
+            int hrefIndex = element.indexOf("xlink:href=\"");
+            if (hrefIndex != -1) {
+                int start = hrefIndex + "xlink:href=\"".length();
+                int end = element.indexOf("\"", start);
+                if (end != -1) {
+                    String href = element.substring(start, end);
+                    if (!hrefs.add(href)) {
+                        duplicatesFound = true;
+                        if(!hrefDuplicatesList.contains(element)) {
+                        	hrefDuplicatesList.add(element);
+                        }
+                    }
+                }
+            }
+        }
+        
         for (String element : xmlElementsList) {
             if (element.startsWith("</") || element.startsWith("<metadataname") || stringsToIgnore.contains(element)) {
                 continue;
@@ -124,27 +141,24 @@ public class XMLProcessor {
                     if (!orderLabels.add(orderLabel)) {
                         duplicatesFound = true;
                         if (!duplicatesList.contains(element)) {
-                            System.out.println(element);
                             duplicatesList.add(element);
                         }
                     }
                 }
             }
         }
-
         if (duplicatesFound) {
-            System.out.println(duplicatesList);
-            generateBackupFile(xmlFile, duplicatesList);
+            generateBackupFile(xmlFile, duplicatesList, hrefDuplicatesList);
         }
     }
 
-    private static void generateBackupFile(File xmlFile, List<String> duplicatesList) {
+    private static void generateBackupFile(File xmlFile, List<String> duplicatesList, List<String> hrefDuplicatesList) {
         LocalDateTime currentTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-        String backupFileName = currentTime.format(formatter) + "_meta.xml"; // Name der Backup-Datei
+        String backupFileName = currentTime.format(formatter) + "_meta.xml"; 
 
-        File backupFile = new File(xmlFile.getParentFile(), backupFileName); // Backup-Datei im selben Verzeichnis erstellen
+        File backupFile = new File(xmlFile.getParentFile(), backupFileName); 
 
         try (BufferedReader reader = new BufferedReader(new FileReader(xmlFile));
                BufferedWriter writer = new BufferedWriter(new FileWriter(backupFile))) {
@@ -152,9 +166,22 @@ public class XMLProcessor {
                List<String> linesToWrite = new ArrayList<>();
                int deleteFollowingLines = 0;
                int removedDuplicates = 0;
+               int removedHrefDuplicates = 0;
+               boolean secondLine = false;
                
                while ((line = reader.readLine()) != null) {
                    boolean isDuplicate = false;
+                   
+                   for (String duplicate : hrefDuplicatesList) {
+                       if (normalizeString(line).equals(normalizeString(duplicate))) {
+                           isDuplicate = true;
+                           deleteFollowingLines = 1;
+                           linesToWrite.remove(linesToWrite.size() - 1);
+                           hrefDuplicatesList.remove(duplicate);
+                           removedHrefDuplicates -= 1;
+                           break;
+                       }
+                   }
                    
                    for (String duplicate : duplicatesList) {
                        if (normalizeString(line).equals(normalizeString(duplicate))) {
@@ -167,16 +194,20 @@ public class XMLProcessor {
                    }
                    
                    if (!isDuplicate && deleteFollowingLines == 0) {
-                	   
-                	   if(removedDuplicates != 0 && line.contains("ORDER=\"")) {
-                		   line = rewritingLines(line, removedDuplicates);
+                	   if (removedHrefDuplicates != 0 && line.contains("MIMETYPE")) {
+                		   line = rewritingHrefDuplicateLines(line, removedHrefDuplicates);
+                	   }
+                	   else if(removedDuplicates != 0 && line.contains("ORDERLABEL=\"")) {
+                		   line = rewritingDuplicateLines(line, removedDuplicates, secondLine);
+                	   } else if(removedDuplicates != 0 && line.contains("FILEID=\"") ) {
+                		   secondLine = true;
+                		   line = rewritingDuplicateLines(line, removedDuplicates, secondLine);
                 	   }
                        linesToWrite.add(line);
                        
                    } else if (!isDuplicate && deleteFollowingLines != 0){
                 	   deleteFollowingLines -= 1;               	   
                    }
-                   
                }
                
                for (String lineToWrite : linesToWrite) {
@@ -190,22 +221,84 @@ public class XMLProcessor {
     private static String normalizeString(String input) {
         return input.trim().replaceAll("\\s+", " "); 
     }
-    private static String rewritingLines(String line, int removedDuplicates) {
-        String[] parts = line.split("ORDER=\"");
-        String beforeORDER = parts[0];
-        String afterORDER = parts[1];
+    private static String rewritingHrefDuplicateLines(String line, int removedDuplicates) {
+    	String[] idParts = line.split("ID=\"");
+    	String beforeID = idParts[0];
+    	String afterID = idParts[1];
+    	int idEndIndex = afterID.indexOf('"');
+    	String idValue = afterID.substring(0, idEndIndex);
 
-        int endIndex = afterORDER.indexOf('"');
-        String orderValue = afterORDER.substring(0, endIndex);
+    	try {
+    	    String cleanedIDValue = idValue.replaceAll("[^\\d]", "");
+    	    String afterIDPart = afterID.substring(idEndIndex);
+    	    int originalIDLength = cleanedIDValue.length();
+    	    int idNumericValue = Integer.parseInt(cleanedIDValue);
+    	    idNumericValue += removedDuplicates;
+    	    String formattedNewIDValue = String.format("%0" + originalIDLength + "d", idNumericValue);
+    	    line = beforeID + "ID=\"FILE_" + formattedNewIDValue + afterIDPart;
+    	
+    	} catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+    	    e.printStackTrace();
+    	}
+    	
+        return line;
+    }
+    
+    private static String rewritingDuplicateLines(String line, int removedDuplicates, boolean secondLine) {
+    	if (secondLine) {
+    		String[] fileIDParts = line.split("FILEID=\"");
+            if (fileIDParts.length > 1) {
+                String beforeFILEID = fileIDParts[0];
+                String afterFILEID = fileIDParts[1];
+                int fileIDEndIndex = afterFILEID.indexOf('"');
+                String fileIDValue = afterFILEID.substring(0, fileIDEndIndex);
+                try {
+                    String cleanedFILEIDValue = fileIDValue.replaceAll("[^\\d]", "");
+                    String afterFILEIDPart = afterFILEID.substring(fileIDEndIndex);
+                    int originalFILEIDLength = cleanedFILEIDValue.length();
+                    int fileIDNumericValue = Integer.parseInt(cleanedFILEIDValue);
+                    fileIDNumericValue += removedDuplicates;
+                    String formattedNewIDValue = String.format("%0" + originalFILEIDLength + "d", fileIDNumericValue);
+                    line = beforeFILEID + "ID=\"FILE_" + formattedNewIDValue + afterFILEIDPart;
+                    secondLine = false;
+                    return line;
+                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                } 
+           }
+        }
+    	String[] idParts = line.split("ID=\"");
+    	String beforeID = idParts[0];
+    	String afterID = idParts[1];
+    	int idEndIndex = afterID.indexOf('"');
+    	String idValue = afterID.substring(0, idEndIndex);
 
+    	try {
+    	    String cleanedIDValue = idValue.replaceAll("[^\\d]", "");
+    	    String afterIDPart = afterID.substring(idEndIndex);
+    	    int originalIDLength = cleanedIDValue.length();
+    	    int idNumericValue = Integer.parseInt(cleanedIDValue);
+    	    idNumericValue -= removedDuplicates;
+    	    String formattedNewIDValue = String.format("%0" + originalIDLength + "d", idNumericValue);
+    	    line = beforeID + "ID=\"PHYS_" + formattedNewIDValue + afterIDPart;
+    	
+    	} catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+    	    e.printStackTrace();
+    	}
+        
+        String[] orderParts = line.split("ORDER=\"");
+        String beforeORDER = orderParts[0];
+        String afterORDER = orderParts[1];
+        int orderEndIndex = afterORDER.indexOf('"');
+        String orderValue = afterORDER.substring(0, orderEndIndex);
+        
         try {
             int value = Integer.parseInt(orderValue);
             value += removedDuplicates;
-            return beforeORDER + "ORDER=\"" + value + afterORDER.substring(endIndex);
+            return beforeORDER + "ORDER=\"" + value + afterORDER.substring(orderEndIndex);
         } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
             e.printStackTrace();
             return line;
         }
     }
-
 }
