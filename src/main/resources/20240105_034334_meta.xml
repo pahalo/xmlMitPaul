@@ -17,13 +17,10 @@
     <mets:div ID="PHYS_0597" ORDER="597" ORDERLABEL="466" TYPE="page">
             <mets:fptr FILEID="FILE_0597"/>
     </mets:div>
-    <mets:div ID="PHYS_0598" ORDER="598" ORDERLABEL="466" TYPE="page">
-            <mets:fptr FILEID="FILE_0598"/>
-    </mets:div>
-    <mets:div ID="PHYS_0599" ORDER="599" ORDERLABEL="467" TYPE="page">
+    <mets:div ID="PHYS_0599" ORDER="598" ORDERLABEL="467" TYPE="page">
             <mets:fptr FILEID="FILE_0599"/>
     </mets:div>
-    <mets:div ID="PHYS_0600" ORDER="600" ORDERLABEL="468" TYPE="page">
+    <mets:div ID="PHYS_0600" ORDER="599" ORDERLABEL="468" TYPE="page">
             <mets:fptr FILEID="FILE_0600"/>
     </mets:div>
     <!-- Weitere Elemente -->

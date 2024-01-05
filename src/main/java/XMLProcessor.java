@@ -108,27 +108,33 @@ public class XMLProcessor {
 
     private static void findDuplicates(List<String> xmlElementsList, File xmlFile) {
         boolean duplicatesFound = false;
-        for (int i = 0; i < xmlElementsList.size(); i++) {
-            String element1 = xmlElementsList.get(i);
-            if (element1.startsWith("</") || element1.startsWith("<metadataname") || stringsToIgnore.contains(element1)) {
+        Set<String> orderLabels = new HashSet<>();
+
+        for (String element : xmlElementsList) {
+            if (element.startsWith("</") || element.startsWith("<metadataname") || stringsToIgnore.contains(element)) {
                 continue;
             }
 
-            for (int j = i + 1; j < xmlElementsList.size(); j++) {
-                String element2 = xmlElementsList.get(j);
-                if (element1.equals(element2)) {
-                    duplicatesFound = true;
-                    if (!duplicatesList.contains(element1)) {
-                    	System.out.println(element1);
-                        duplicatesList.add(element1);
+            int orderLabelIndex = element.indexOf("ORDERLABEL=\"");
+            if (orderLabelIndex != -1) {
+                int start = orderLabelIndex + "ORDERLABEL=\"".length();
+                int end = element.indexOf("\"", start);
+                if (end != -1) {
+                    String orderLabel = element.substring(start, end);
+                    if (!orderLabels.add(orderLabel)) {
+                        duplicatesFound = true;
+                        if (!duplicatesList.contains(element)) {
+                            System.out.println(element);
+                            duplicatesList.add(element);
+                        }
                     }
                 }
             }
         }
 
         if (duplicatesFound) {
-        	System.out.println(duplicatesList);
-        	generateBackupFile(xmlFile, duplicatesList);
+            System.out.println(duplicatesList);
+            generateBackupFile(xmlFile, duplicatesList);
         }
     }
 
@@ -144,36 +150,35 @@ public class XMLProcessor {
                BufferedWriter writer = new BufferedWriter(new FileWriter(backupFile))) {
                String line;
                List<String> linesToWrite = new ArrayList<>();
-               boolean postDuplicate = false;
+               int deleteFollowingLines = 0;
+               int removedDuplicates = 0;
                
-
                while ((line = reader.readLine()) != null) {
                    boolean isDuplicate = false;
                    
                    for (String duplicate : duplicatesList) {
                        if (normalizeString(line).equals(normalizeString(duplicate))) {
                            isDuplicate = true;
-                           postDuplicate = true;
-                           if (!linesToWrite.isEmpty()) {
-                               linesToWrite.remove(linesToWrite.size() - 1);
-                           }
+                           deleteFollowingLines = 2;
                            duplicatesList.remove(duplicate);
+                           removedDuplicates -= 1;
                            break;
                        }
                    }
                    
-                   
-                   if (!isDuplicate && !postDuplicate) {
+                   if (!isDuplicate && deleteFollowingLines == 0) {
+                	   
+                	   if(removedDuplicates != 0 && line.contains("ORDER=\"")) {
+                		   line = rewritingLines(line, removedDuplicates);
+                	   }
                        linesToWrite.add(line);
                        
-                   } else if (!isDuplicate && postDuplicate){
-                	   postDuplicate = false;
-                	   
+                   } else if (!isDuplicate && deleteFollowingLines != 0){
+                	   deleteFollowingLines -= 1;               	   
                    }
                    
                }
                
-
                for (String lineToWrite : linesToWrite) {
                    writer.write(lineToWrite + "\n");
                }
@@ -183,7 +188,24 @@ public class XMLProcessor {
     }
 
     private static String normalizeString(String input) {
-        return input.trim().replaceAll("\\s+", " "); // Entferne führende und nachfolgende Leerzeichen, ersetze Mehrfach-Leerzeichen durch eins
+        return input.trim().replaceAll("\\s+", " "); 
+    }
+    private static String rewritingLines(String line, int removedDuplicates) {
+        String[] parts = line.split("ORDER=\"");
+        String beforeORDER = parts[0];
+        String afterORDER = parts[1];
+
+        int endIndex = afterORDER.indexOf('"');
+        String orderValue = afterORDER.substring(0, endIndex);
+
+        try {
+            int value = Integer.parseInt(orderValue);
+            value += removedDuplicates;
+            return beforeORDER + "ORDER=\"" + value + afterORDER.substring(endIndex);
+        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return line;
+        }
     }
 
 }
