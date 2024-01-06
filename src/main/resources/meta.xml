@@ -1,13 +1,6 @@
 <employees xmlns:mets="http://example.com/mets-namespace"
            xmlns:xlink="http://www.w3.org/1999/xlink">
-    <employee id="12">
-        <lastName>Williams</lastName>
-        <firstName geboren="1980-04-15" gestorben="2035-09-28">Emma</firstName>
-        <country>UK</country>
-        <department id="38">
-            <name>Marketing</name>
-        </department>
-    </employee>
+    
      	 <mets:file ID="FILE_0595" MIMETYPE="">
             <mets:FLocat LOCTYPE="URL" xlink:href="00000587.tif"/>
          </mets:file>
@@ -23,6 +16,7 @@
          <mets:file ID="FILE_0599" MIMETYPE="">
             <mets:FLocat LOCTYPE="URL" xlink:href="00000590.tif"/>
          </mets:file>
+           
            
     <mets:div ID="PHYS_0595" ORDER="595" ORDERLABEL="464" TYPE="page">
             <mets:fptr FILEID="FILE_0595"/>
@@ -47,6 +41,27 @@
     </mets:div>
     <mets:div ID="PHYS_0602" ORDER="602" ORDERLABEL="469" TYPE="page">
             <mets:fptr FILEID="FILE_0602"/>
-    </mets:div>  
+    </mets:div>
+   
+    <mets:smLink xlink:to="PHYS_0590" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0591" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0592" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0593" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0594" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0595" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0596" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0597" xlink:from="LOG_0003"/>
+      -
+      <mets:smLink xlink:to="PHYS_0598" xlink:from="LOG_0003"/>
+      -
+      <mets:smLink xlink:to="PHYS_0599" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0600" xlink:from="LOG_0003"/>
+      -
+      <mets:smLink xlink:to="PHYS_0601" xlink:from="LOG_0003"/>
+      -
+      <mets:smLink xlink:to="PHYS_0602" xlink:from="LOG_0003"/>
+      <mets:smLink xlink:to="PHYS_0603" xlink:from="LOG_0003"/>
+      
+      
     <!-- Weitere Elemente -->
 </employees>
