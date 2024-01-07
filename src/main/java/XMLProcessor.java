@@ -126,7 +126,7 @@ public class XMLProcessor {
                         duplicatesFound = true;
                         // Überprüfen und Hinzufügen von Duplikaten der 'xlink:href'-Attribute
                         if (!hrefDuplicatesList.contains(element)) {
-                            hrefDuplicatesList.add(element);
+                            hrefDuplicatesList.add(href);
                         }
                     }
                 }
