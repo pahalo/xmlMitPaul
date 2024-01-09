@@ -20,20 +20,36 @@ public class XMLProcessor {
 	private static final Logger logger = LogManager.getLogger(XMLProcessor.class);
 	private static int filesWithDuplicates = 0;
 	private static int totalDuplicates = 0;
-
+	private static List<String> parentDirectory = new ArrayList<>();
+	
     public static void main(String[] args) {
     	Configurator.setRootLevel(org.apache.logging.log4j.Level.DEBUG);
-        
+    	StringBuilder stringBuilder = new StringBuilder();
+    	
         if (args.length != 1) {
-        	logger.error("Bitte nur ein Verzeichnis angeben.");
+        	// Comment: Checking if a single directory is specified
+        	logger.error("Please specify only one directory."); 
         } else {
             File directory = new File(args[0]).getAbsoluteFile();
             if (directory.exists() && directory.isDirectory()) {
                 processFiles(directory);
-                logger.debug("Anzahl der Dateien mit Duplikaten: " + filesWithDuplicates);
-                logger.debug("Gesamtanzahl der Duplikate: " + totalDuplicates);
+                // Comment: Output number of files with duplicates
+                logger.info("Number of files with duplicates: " + filesWithDuplicates); 
+                // Comment: Output total count of duplicates
+                logger.info("Total count of duplicates: " + totalDuplicates); 
+                
+                for (int i = 0; i < parentDirectory.size(); i++) {
+                    String element = parentDirectory.get(i);
+                    stringBuilder.append(element);
+                    if (i != parentDirectory.size() - 1) {
+                        stringBuilder.append(" ");
+                    }
+                }
+                // Comment: Output directory names as a concatenated string
+                logger.info("\"id:" + stringBuilder + "\"");
             } else {
-            	logger.error("Das Verzeichnis existiert nicht.");
+            	// Comment: Error message if the directory doesn't exist
+            	logger.error("Das Verzeichnis existiert nicht."); 
             }
         }
     }
@@ -42,7 +58,6 @@ public class XMLProcessor {
      * Recursively traverses all files and directories in the specified directory and processes XML files.
      * @param directory The directory to be searched.
      */
-    
     private static void processFiles(File directory) {
         if (directory.isDirectory()) {
             File[] files = directory.listFiles();
@@ -57,12 +72,12 @@ public class XMLProcessor {
             }
         }
     }
+    
     /**
      * Processes a single XML file and collects all XML elements.
      * @param file The XML file to be processed.
      * @param directory The directory where the XML file resides.
      */
-
     private static void processXmlFile(File file, File directory) {
         List<String> xmlElementsList = new ArrayList<>();
 
@@ -76,6 +91,7 @@ public class XMLProcessor {
             e.printStackTrace();
         }
     }
+    
     /**
      * Collects XML elements recursively.
      * @param element The XML element being processed.
@@ -133,12 +149,11 @@ public class XMLProcessor {
      * @param filesWithDuplicates Number of files with duplicates.
      * @param totalDuplicates Total count of duplicates.
      */
-    
     private static void findDuplicates(List<String> xmlElementsList, File xmlFile) {
         boolean duplicatesFound = false;
         Set<String> hrefs = new HashSet<>();
         List<String> hrefDuplicatesList = new ArrayList<>();
-
+        
         for (String element : xmlElementsList) {
             int hrefIndex = element.indexOf("xlink:href=\"");
             if (hrefIndex != -1) {
@@ -159,9 +174,11 @@ public class XMLProcessor {
         if (duplicatesFound) {
         	filesWithDuplicates++;
             totalDuplicates += hrefDuplicatesList.size();
-            logger.debug(xmlFile.getAbsolutePath());
+            logger.info(xmlFile.getAbsolutePath()); 
+            File directoryAbove = xmlFile.getParentFile();
+            parentDirectory.add(directoryAbove.getName());
             for (String element : hrefDuplicatesList) {
-            	logger.debug("   xlink:href=\"" + element + "\"");
+            	logger.debug("   " + element);
             }
             hrefDuplicatesList.clear();
         }
