@@ -7,25 +7,33 @@ import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.Namespace;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
+
 /**
  * This class searches tif for duplicates in the MPI import
+ * @param filesWithDuplicates Number of files with duplicates.
+ * @param totalDuplicates Total count of duplicates.
  */
 public class XMLProcessor {
+	private static final Logger logger = LogManager.getLogger(XMLProcessor.class);
+	private static int filesWithDuplicates = 0;
+	private static int totalDuplicates = 0;
 
     public static void main(String[] args) {
-    	int filesWithDuplicates = 0;
-        int totalDuplicates = 0;
+    	Configurator.setRootLevel(org.apache.logging.log4j.Level.DEBUG);
         
         if (args.length != 1) {
-            System.out.println("Bitte nur ein Verzeichnis angeben.");
+        	logger.error("Bitte nur ein Verzeichnis angeben.");
         } else {
             File directory = new File(args[0]).getAbsoluteFile();
             if (directory.exists() && directory.isDirectory()) {
-                processFiles(directory, filesWithDuplicates, totalDuplicates);
-                System.out.println("Anzahl der Dateien mit Duplikaten: " + filesWithDuplicates);
-                System.out.println("Gesamtanzahl der Duplikate: " + totalDuplicates);
+                processFiles(directory);
+                logger.debug("Anzahl der Dateien mit Duplikaten: " + filesWithDuplicates);
+                logger.debug("Gesamtanzahl der Duplikate: " + totalDuplicates);
             } else {
-                System.out.println("Das Verzeichnis existiert nicht.");
+            	logger.error("Das Verzeichnis existiert nicht.");
             }
         }
     }
@@ -33,19 +41,17 @@ public class XMLProcessor {
     /**
      * Recursively traverses all files and directories in the specified directory and processes XML files.
      * @param directory The directory to be searched.
-     * @param filesWithDuplicates Number of files with duplicates.
-     * @param totalDuplicates Total count of duplicates.
      */
     
-    private static void processFiles(File directory, int filesWithDuplicates, int totalDuplicates) {
+    private static void processFiles(File directory) {
         if (directory.isDirectory()) {
             File[] files = directory.listFiles();
             if (files != null) {
                 for (File file : files) {
                     if (file.isFile() && file.getName().toLowerCase().endsWith(".xml")) {
-                        processXmlFile(file, directory, filesWithDuplicates, totalDuplicates);
+                        processXmlFile(file, directory);
                     } else if (file.isDirectory()) {
-                        processFiles(file, filesWithDuplicates, totalDuplicates);
+                        processFiles(file);
                     }
                 }
             }
@@ -55,11 +61,9 @@ public class XMLProcessor {
      * Processes a single XML file and collects all XML elements.
      * @param file The XML file to be processed.
      * @param directory The directory where the XML file resides.
-     * @param filesWithDuplicates Number of files with duplicates.
-     * @param totalDuplicates Total count of duplicates.
      */
 
-    private static void processXmlFile(File file, File directory, int filesWithDuplicates, int totalDuplicates) {
+    private static void processXmlFile(File file, File directory) {
         List<String> xmlElementsList = new ArrayList<>();
 
         try {
@@ -67,7 +71,7 @@ public class XMLProcessor {
             Document doc = sax.build(file);
             Element rootElement = doc.getRootElement();
             collectXmlElements(rootElement, file, xmlElementsList);
-            findDuplicates(xmlElementsList, file,  filesWithDuplicates, totalDuplicates);
+            findDuplicates(xmlElementsList, file);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -130,7 +134,7 @@ public class XMLProcessor {
      * @param totalDuplicates Total count of duplicates.
      */
     
-    private static void findDuplicates(List<String> xmlElementsList, File xmlFile, int filesWithDuplicates, int totalDuplicates) {
+    private static void findDuplicates(List<String> xmlElementsList, File xmlFile) {
         boolean duplicatesFound = false;
         Set<String> hrefs = new HashSet<>();
         List<String> hrefDuplicatesList = new ArrayList<>();
@@ -144,7 +148,7 @@ public class XMLProcessor {
                     String href = element.substring(start, end);
                     if (!hrefs.add(href)) {
                         duplicatesFound = true;
-                        if (!hrefDuplicatesList.contains(element)) {
+                        if (!hrefDuplicatesList.contains(href)) {
                             hrefDuplicatesList.add(href);
                         }
                     }
@@ -155,9 +159,9 @@ public class XMLProcessor {
         if (duplicatesFound) {
         	filesWithDuplicates++;
             totalDuplicates += hrefDuplicatesList.size();
-            System.out.println(xmlFile.getAbsolutePath());
+            logger.debug(xmlFile.getAbsolutePath());
             for (String element : hrefDuplicatesList) {
-                System.out.println("xlink:href=\"" + element + "\"");
+            	logger.debug("   xlink:href=\"" + element + "\"");
             }
             hrefDuplicatesList.clear();
         }
